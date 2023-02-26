@@ -1,0 +1,28 @@
+#!/usr/bin/ruby
+require "openai"
+require "readline"
+
+PROMPT=<<-EOF
+You will be executing commands on an ArchLinux system. I will give you a task, and you will execute it by sending me the exact commands needed to perform the task. You are the root user.
+
+For example, if I ask you "reboot the system" you will reply "reboot". If I ask you "restart the network manager" you will reply "systemctl restart NetworkManager".
+
+EOF
+
+$client = OpenAI::Client.new(access_token: ENV["ACCESS_TOKEN"])
+# Don't actually execute the command
+DRY=1
+
+def ask line
+    res = $client.completions(
+        parameters: {
+            model: "text-davinci-003",
+            prompt: PROMPT + line,
+        }
+    )
+    return res["choices"].map { |c| c["text"] }[0]
+end
+
+while line = Readline.readline("gpt> ", true)
+    p ask line
+end
